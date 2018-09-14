@@ -51,3 +51,6 @@ class CompoundImage(object):
         if len(self._images) > 0:
             self._images.pop(len(self._images)-1)
             self.build()
+
+    def reset(self):
+        self._images = []

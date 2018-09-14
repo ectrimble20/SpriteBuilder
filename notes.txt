@@ -10,3 +10,13 @@ Planned Features:
 - rename stock images, e.g load folder with w/e images and rename them
 - pixel art editor? like a large scaled 16x16 or 32x32 pixel editor
     - allow editing of existing images
+
+
+Okay, so I want to figure out the "main" sections I want to make, this will determine how I build the main menu
+and general GUI functionality.
+
+On enter, the user should have the option to:
+1: Build compound Image - current builder
+2: Sprite builder, pixel art kind of tool
+3: Sprite Sheet Parser
+4: Image Organizer - something to allow organization of images, maybe we should BIN store the images as they're loaded?
