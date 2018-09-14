@@ -1,0 +1,12 @@
+Planned Features:
+- allow a user to add images via an interface (no idea how to implement this yet)
+- allow a user to flag an image as "excluded"
+- allow naming a new images
+- selection list of images
+- various preview sizes (16x, 32x, 64x)
+- move images around
+- color images, simple pixel editor?
+    - color selection
+- rename stock images, e.g load folder with w/e images and rename them
+- pixel art editor? like a large scaled 16x16 or 32x32 pixel editor
+    - allow editing of existing images
