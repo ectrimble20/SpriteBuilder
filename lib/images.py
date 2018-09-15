@@ -2,6 +2,58 @@ from local import *
 from lib.structure import Pair
 
 
+class CompoundImage(object):
+
+    def __init__(self, size=1):
+        self._size = size * 16
+        self._image = None
+        self._init_image()
+        self._layers = []
+        self._scales = {}
+
+    def _init_image(self):
+        self._image = pygame.Surface([self._size, self._size]).convert()
+        self._image.fill(TRANSPARENCY_COLOR)
+        self._image.set_colorkey(TRANSPARENCY_COLOR)
+
+    def add(self, layer, offset=(0, 0)):
+        self._layers.append(Pair(layer, offset))
+        self._build()
+
+    def undo(self):
+        if len(self._layers) > 0:
+            self._layers.pop(len(self._layers)-1)
+            self._build()
+
+    def _build(self):
+        self._init_image()  # rebuild the image
+        self._scales.clear()
+        for p in self._layers:
+            self._image.blit(p.first, p.second)
+        # build scaled images
+        for i in range(1, 5):
+            tmp = pygame.Surface([i*16, i*16]).convert()
+            tmp.fill(TRANSPARENCY_COLOR)
+            tmp.set_colorkey(TRANSPARENCY_COLOR)
+            if i*16 != self._size:
+                pygame.transform.scale(self._image, (i*16, i*16), tmp)
+            else:
+                tmp = self._image.copy()
+            self._scales[i] = tmp
+
+    def has_content(self):
+        return len(self._layers) > 0
+
+    def get_image(self, size=4):
+        if 0 < size < 5:
+            return self._scales[size]
+
+    def reset(self):
+        self._layers.clear()
+        self._scales.clear()
+        self._init_image()
+
+
 class ImageItem(pygame.sprite.Sprite):
 
     def __init__(self, surface, x, y):
@@ -25,20 +77,38 @@ class PreviewImage(object):
         self.rect.topleft = x, y
 
 
-class CompoundImage(object):
+class OldCompoundImage(object):
 
     def __init__(self, size=16):
         self._images = []
-        self.size = size
+        self._size = size
         self.image = None
         self._init_image()
 
+    def change_size(self, size=16):
+        if self._size != size:
+            self._size = size
+            self.rescale()
+
+    def rescale(self):
+        for pair in self._images:
+            tmp = pygame.Surface((self._size, self._size)).convert()
+            tf_scale = pair.second[0]*self._size, pair.second[1]*self._size
+            pygame.transform.scale(pair.first, tf_scale, tmp)
+            pair.first.blit(tmp, (0, 0))
+
     def _init_image(self):
-        self.image = pygame.Surface((self.size, self.size)).convert()
+        self.image = pygame.Surface((self._size, self._size)).convert()
         self.image.fill(TRANSPARENCY_COLOR)
         self.image.set_colorkey(TRANSPARENCY_COLOR)
 
-    def add(self, img, offset=(0, 0)):
+    # TODO we need be able to scale down as well
+    def add(self, img, offset=(0, 0), scale=1):
+        # if scale is requested, scale the image per the request
+        if scale > 1:
+            tmp = pygame.Surface((img.get_rect().w*scale, img.get_rect().h*scale)).convert()
+            pygame.transform.scale(img, (img.get_rect().w*scale, img.get_rect().h*scale), tmp)
+            img = tmp
         self._images.append(Pair(img, offset))
         self.build()
 
@@ -53,4 +123,5 @@ class CompoundImage(object):
             self.build()
 
     def reset(self):
-        self._images = []
+        if len(self._images) > 0:
+            self._images.clear()

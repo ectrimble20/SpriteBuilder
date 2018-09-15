@@ -26,10 +26,26 @@ Add images by clicking on them, hovering over an image gives you a larger previe
 #### The To-Do's
 
 - [ ] Allow size selection before save
-- [ ] Allow image to be named
+- [x] Allow image to be named
 - [ ] Dynamic loading of images
 - [ ] Sprite sheet parsing
 - [ ] Custom image saving (e.g compound images saved as bin format for reloading)
 - [ ] Improved layout
 - [ ] Image/color editor
 - [ ] Figure out the rest of the To-Do's
+- [ ] Menu implementation
+- [x] GUI (WIP)
+
+#### Change Log
+
+#####0.1.0
+
+This build moves everything to a state driven system, so far there is only the build state which is the replacement
+for the builder.py and pretty much emulates it's behavior with some additional features such as a module GUI, file
+naming, and a few minor differences in the preview stuff.
+
+The next build will aim to implement fixes to the text input (it's a bit rough atm), fixes to the preview (I'd like
+the mouse-over to always be scaled to 64x64 regardless of the underlying image), image scaling options (save image
+in various sizes) and some other features I've yet to decide on.
+
+Note, most if not all previous code is still in place and will be removed with 0.1.1

@@ -1,0 +1,41 @@
+0.1.0 - Changes
+
+- Removed BUTTON prefixed globals from `local.py` replaced with GUI abbreviated short names
+- GuiElement class added as an interface GUI objects should follow
+- Removed `callback` option from GuiButton class construct
+- Consolidated GUI controls to single array to simplify update/draw calls for GUI elements
+- Gui update calls always return, usually None, if not, an action was caught.  Only the last
+action will be registered, all others are discarded.
+- Text Input button now has focus functionality.  Will need a text input function to make it actually work
+- Text input length adjustment
+- Not worrying about making text 100% perfect right now, just need it sort of working
+- Changed GUI to use dict to store elements and elements need a key to create them.  This is for future use
+where we might need to lookup a specific element for one reason or another.
+- Image preview working
+- Image list working
+- Images can now be up to 64x64 but must be square (this may change later)
+- GuiImageButton class added to hold image data for a selectable image
+- GuiImageButtonGroup added as a manager for GuiImageButton's allowing them to be stored in rows and displayed
+within a defined Rect.  Scrolling and Mouse check is handled by this class.
+- Fixed display image area to center if not fully filled.
+
+0.1.0 - Bugs/Problems
+
+- Known: Save and Clear not yet implemented, a new Compound image is needed to interact with the GUI classes.
+- Text input isn't working too well.  A lot of timing issues and lost keystrokes.  We may need to switch from
+using get_pressed() to using the event Queue to log keys.
+- Text select (moving the cursor) with the mouse is not implemented.
+- Moving the cursor with left-right keys does not work correctly.
+- Cursor render is not working as intended when not at the end, this will require the render() method to be
+reworked in how it calculates the string length and cursor position relative to the rect
+- fixed - Text input does not work if box is empty
+
+0.1.0 - Commit Notes
+
+This build moves everything to a state driven system, so far there is only the build state which is the replacement
+for the builder.py and pretty much emulates it's behavior with some additional features such as a module GUI, file
+naming, and a few minor differences in the preview stuff.
+
+The next build will aim to implement fixes to the text input (it's a bit rough atm), fixes to the preview (I'd like
+the mouse-over to always be scaled to 64x64 regardless of the underlying image), image scaling options (save image
+in various sizes) and some other features I've yet to decide on.

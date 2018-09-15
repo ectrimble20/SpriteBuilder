@@ -1,11 +1,12 @@
 from os import path
+from os import listdir
 import pygame
 from time import time
 from random import randint
 
 VERSION_MAJOR = 0
-VERSION_MINOR = 0
-VERSION_BUILD = 2
+VERSION_MINOR = 1
+VERSION_BUILD = 0
 
 CAPTION = "SpriteBuilder: {}.{}.{}".format(VERSION_MAJOR, VERSION_MINOR, VERSION_BUILD)
 
@@ -31,17 +32,29 @@ FONT_24 = pygame.font.Font(FONT_FILE, 24)
 FONT_16 = pygame.font.Font(FONT_FILE, 16)
 
 # GUI Colors
-BUTTON_FONT_OBJECT = None
-BUTTON_BORDER_COLOR = 255, 255, 255
-BUTTON_BORDER_WIDTH = 1
-BUTTON_TEXT_COLOR = 255, 255, 255
-BUTTON_BG_COLOR = 90, 90, 90
+# BDR - border
+# CLR - color
+# BG - background
+# HVR - hover (mouse over)
+GUI_BDR_CLR = 255, 255, 255
+GUI_BDR_WIDTH = 1
+GUI_FONT_CLR = 255, 255, 255
+GUI_BG_CLR = 90, 90, 90
+GUI_BDR_CLR_HVR = 128, 128, 128
+GUI_BG_CLR_HVR = 30, 30, 30
+GUI_FONT_CLR_HVR = 225, 225, 225
 
-# GUI Mouse Over
-BUTTON_MO_BG_COLOR = 0, 0, 0
-BUTTON_MO_TEXT_COLOR = 255, 255, 255
-BUTTON_MO_BORDER_COLOR = 128, 128, 128
+# Key mods, these are mods for cap/shift
+CAPS_ON = pygame.KMOD_CAPS
+SHIFT_DOWN = pygame.KMOD_LSHIFT | pygame.KMOD_RSHIFT
 
 
 def get_save_image_path():
     return path.join(CREATED_IMAGE_DIR, "{}.{}.png".format(int(time()), randint(1000, 9999)))
+
+
+def get_dir_contents(d):
+    if path.isdir(d):
+        return listdir(d)
+    else:
+        raise RuntimeError("Directory expected at {} is not a directory".format(d))
