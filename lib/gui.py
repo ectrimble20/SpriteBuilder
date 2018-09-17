@@ -51,7 +51,8 @@ class ScrollPoint(pygame.sprite.Sprite):
 
 class GuiElement(object):
 
-    def __init__(self):
+    def __init__(self, parent):
+        self.parent = parent
         self.rect = None
         self.image = None
 
@@ -61,8 +62,8 @@ class GuiElement(object):
 
 class GuiContentBox(GuiElement):
 
-    def __init__(self, rect):
-        super().__init__()
+    def __init__(self, parent, rect):
+        super().__init__(parent)
         self.rect = rect
         self.image = pygame.Surface([self.rect.w, self.rect.h])
         self.image.fill(GUI_BG_CLR)
@@ -77,8 +78,8 @@ class GuiContentBox(GuiElement):
 
 class GuiButton(GuiElement):
 
-    def __init__(self, action, label, rect):
-        super().__init__()
+    def __init__(self, parent, rect, label, action):
+        super().__init__(parent)
         self._images = {}
         self.action = action
         self.rect = rect
@@ -128,8 +129,8 @@ class GuiButton(GuiElement):
 class GuiTextInput(GuiElement):
 
     # TODO we'll need to handle clicking on text and figuring out where to put the cursor
-    def __init__(self, label, rect, text: list, max_len=0):
-        super().__init__()
+    def __init__(self, parent, rect, label, text: list, max_len=0):
+        super().__init__(parent)
         self.label = label
         self.rect = rect
         self.focused = False
@@ -144,7 +145,7 @@ class GuiTextInput(GuiElement):
         self._type_timer = 0.0
         self._cursor_blink = 0.5
         self._type_delay = 0.15
-        self._content_box = GuiContentBox(rect)
+        self._content_box = GuiContentBox(self.parent, rect)
         self.cursor_to_end()  # This calls render
 
     def update(self, mouse_rect, btn_state, dt):
@@ -290,12 +291,10 @@ class GuiTextInput(GuiElement):
 
 class GuiImageButton(GuiElement):
 
-    def __init__(self, surface):
-        super().__init__()
+    def __init__(self, parent, surface):
+        super().__init__(parent)
         self._raw_image = surface  # copy of original surface for reference
-        self.image = pygame.Surface([64, 64])
-        self.image.fill(TRANSPARENCY_COLOR)
-        self.image.set_colorkey(TRANSPARENCY_COLOR)
+        self.image = get_transparent_surface(64, 64)
         pt = 0, 0
         # adjust draw point if image is not 64x64, we want to draw in the center
         if self._raw_image.get_rect().w < 64 and self._raw_image.get_rect().h < 64:
@@ -347,7 +346,7 @@ class GuiImageButtonGroup(object):
             self._row_display = self._row_count - self._rows_shown
             self._populate_current_images()
 
-    def load(self, image_list):
+    def load(self, gui_parent, image_list):
         # calculate the number of rows we need
         images_per_row = self.rect.w // 64
         self._rows_shown = self.rect.h // 64
@@ -357,7 +356,7 @@ class GuiImageButtonGroup(object):
             row = []
             for _ in range(0, images_per_row):
                 try:
-                    row.append(GuiImageButton(image_list.pop(0)))
+                    row.append(GuiImageButton(gui_parent, image_list.pop(0)))
                 except IndexError:  # this means we ran out of images
                     break
             self._image_button_rows[r] = row
@@ -394,8 +393,8 @@ class GuiImageButtonGroup(object):
 
 class GuiTextLabel(GuiElement):
 
-    def __init__(self, text, x, y):
-        super().__init__()
+    def __init__(self, parent, text, x, y):
+        super().__init__(parent)
         self.image = FONT_16.render(text, True, GUI_FONT_CLR)
         self.rect = self.image.get_rect()
         self.rect.topleft = x, y
@@ -414,21 +413,36 @@ class Gui(object):
         self._focused_input = None
         self._action_timer = 0.0
         self._action_delay = 0.15
+        self._mouse_helper_text_obj = None
+        self._current_mouse_helper_text = None
+
+    def mouse_text(self, text):
+        if self._current_mouse_helper_text != text:
+            self._current_mouse_helper_text = text
+            self._mouse_helper_text_obj = FONT_12.render(text, True, GUI_FONT_CLR, GUI_BG_CLR)
+            if GUI_BDR_WIDTH > 0:
+                r = self._mouse_helper_text_obj.get_rect()
+                r.topleft = 0, 0
+                pygame.draw.rect(self._mouse_helper_text_obj, GUI_BDR_CLR, r, GUI_BDR_WIDTH)
+
+    def no_mouse_text(self):
+        self._current_mouse_helper_text = None
+        self._mouse_helper_text_obj = None
 
     def find_element(self, key):
         return self._elements.get(key, None)
 
     def create_button(self, key, action, label, rect):
-        self._elements[key] = GuiButton(action, label, rect)
+        self._elements[key] = GuiButton(self, rect, label, action)
 
     def create_content_box(self, key, rect):
-        self._elements[key] = GuiContentBox(rect)
+        self._elements[key] = GuiContentBox(self, rect)
 
-    def create_text_input(self, key, label, rect, text):
-        self._elements[key] = GuiTextInput(label, rect, text)
+    def create_text_input(self, key, label, rect, text, max_len=0):
+        self._elements[key] = GuiTextInput(self, rect, label, text, max_len)
 
-    def create_text_label(self, key, text, x, y):
-        self._elements[key] = GuiTextLabel(text, x, y)
+    def create_text_label(self, key, text, point):
+        self._elements[key] = GuiTextLabel(self, text, point[0], point[1])
 
     def update(self, dt):
         action = None
@@ -450,3 +464,17 @@ class Gui(object):
     def draw(self, display):
         for k, e in self._elements.items():
             display.blit(e.image, e.rect)
+
+    def draw_tooltip(self, display):
+        if self._mouse_helper_text_obj is not None:
+            p = pygame.mouse.get_pos()
+            mt_rect = self._mouse_helper_text_obj.get_rect()
+            if p[0] + self._mouse_helper_text_obj.get_rect().w + GUI_TOOLTIP_PADDING > SCREEN_WIDTH:
+                mt_rect.x = p[0] - mt_rect.w - GUI_TOOLTIP_PADDING
+            else:
+                mt_rect.x = p[0] + GUI_TOOLTIP_PADDING
+            if p[1] + self._mouse_helper_text_obj.get_rect().h + GUI_TOOLTIP_PADDING > SCREEN_HEIGHT:
+                mt_rect.y = p[1] - mt_rect.h - GUI_TOOLTIP_PADDING
+            else:
+                mt_rect.y = p[1] + GUI_TOOLTIP_PADDING
+            display.blit(self._mouse_helper_text_obj, mt_rect)

@@ -1,3 +1,35 @@
+0.1.1 - Changes
+
+- Added colors.py, common use colors, changed local colors, eventually want to be able to customize this within
+the application
+- Moved all positioning into local for easier access for the time being
+- Added Sys image directory for icon images
+- Added Sys image loading and dictionary to local
+- Added FONT_12 smaller text for hover-help text and small labels
+- Modified GUI element interfaces to be more universal + have parent reference to Gui object itself
+- Functionality in place to handle tool-tip text functionality
+    - Note: I think this is going to require a bit of a change in how the GUI handles itself
+- 0.1.1 is being cut a little short, I'm going to be doing a big re-work of the GUI objects to handle events a bit
+better which is going to require a lot of things to change slightly so I'm going to go ahead and commit 0.1.1 and
+increment up to a new build.
+
+0.1.+ - Planned Changes
+
+- Change button layout and positions, change to icon buttons rather than text
+- Add hover-help text to buttons (e.g hover over save it says 'save')
+- Enlarge image selection area
+- Labels for image areas
+- In right preview panel, scale all images to 64x64 when previewing if smaller than 64x64
+- Work on text input, transition to using event queue
+- Select image scale when saving
+- Scale image when adding to compound image
+- Layout should be more dynamic to screen size (e.g auto-center itself)
+- Implement second state - Menu
+- Scroll-ability (mouse and/or scrollbar) for image selection area
+- clean up names a bit so we more easily know what they are.
+- polish up the code a bit
+
+
 0.1.0 - Changes
 
 - Removed BUTTON prefixed globals from `local.py` replaced with GUI abbreviated short names
@@ -21,7 +53,7 @@ within a defined Rect.  Scrolling and Mouse check is handled by this class.
 
 0.1.0 - Bugs/Problems
 
-- Known: Save and Clear not yet implemented, a new Compound image is needed to interact with the GUI classes.
+- fixed in 0.1.0 - Known: Save and Clear not yet implemented, a new Compound image is needed to interact with the GUI classes.
 - Text input isn't working too well.  A lot of timing issues and lost keystrokes.  We may need to switch from
 using get_pressed() to using the event Queue to log keys.
 - Text select (moving the cursor) with the mouse is not implemented.

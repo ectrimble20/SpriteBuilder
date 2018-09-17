@@ -15,6 +15,7 @@ class SpriteBuilder(object):
         self._running = True
         self.clock = pygame.time.Clock()
         self.dt = 0.0
+        load_sys_images()
 
     def init_states(self):
         self._states["build"] = BuildState(self)

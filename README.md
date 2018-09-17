@@ -1,7 +1,5 @@
 ### Sprite Builder
 
-###### version 1.0.0 - Alpha
-
 This is a broader attempt at a sprite builder similar to my Denzi Character Builder project which I've stopped working on in favor of this project.
 
 The Sprite Builder is being designed to work with sprites from 16x16 to 64x64, though in it's current state it is hard coded to only work with 16x16 images.
@@ -38,7 +36,13 @@ Add images by clicking on them, hovering over an image gives you a larger previe
 
 #### Change Log
 
-#####0.1.0
+##### 0.1.1
+
+This build doesn't change a lot, mostly just some light fixes and some new things added in for future builds and 
+planned changes such as icons, mouse-over text and dynamic positioning.  GUI objects need some reworking that is
+going to be fairly large in scope so I'm cutting changes to 0.1.1 short and moving to 0.1.2 for the GUI clean up.
+
+##### 0.1.0
 
 This build moves everything to a state driven system, so far there is only the build state which is the replacement
 for the builder.py and pretty much emulates it's behavior with some additional features such as a module GUI, file
