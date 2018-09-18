@@ -1,5 +1,7 @@
 from local import *
 from core.state.buildstate import BuildState
+from core.state.menustate import MenuState
+from core.state.creatorstate import CreatorState
 
 
 class SpriteBuilder(object):
@@ -19,7 +21,9 @@ class SpriteBuilder(object):
 
     def init_states(self):
         self._states["build"] = BuildState(self)
-        self._active_state = self._states["build"]
+        self._states["create"] = CreatorState(self)
+        self._states["menu"] = MenuState(self)
+        self._active_state = self._states["menu"]
         self._active_state.on_enter()
 
     def run(self):
@@ -32,7 +36,7 @@ class SpriteBuilder(object):
             pygame.display.update()
             if self._change_state_to is not None:
                 self._active_state.on_exit()
-                self._active_state = self._change_state_to
+                self._active_state = self._states[self._change_state_to]
                 self._change_state_to = None
                 self._active_state.on_enter()
 

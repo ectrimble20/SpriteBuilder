@@ -57,7 +57,13 @@ class GuiElement(object):
         self.image = None
 
     def update(self, mouse_rect, btn_state, dt):
-        return None
+        pass
+
+    def mouse_over(self, mouse_rect):
+        return mouse_rect.colliderect(self.rect)
+
+    def tool_tip(self):
+        pass
 
 
 class GuiContentBox(GuiElement):
@@ -78,17 +84,21 @@ class GuiContentBox(GuiElement):
 
 class GuiButton(GuiElement):
 
-    def __init__(self, parent, rect, label, action):
+    def __init__(self, parent, rect, label, action, big=False):
         super().__init__(parent)
         self._images = {}
         self.action = action
+        self.label = label
         self.rect = rect
         btn = pygame.Surface([self.rect.w, self.rect.h])
         btn.fill(GUI_BG_CLR)
         if GUI_BDR_WIDTH > 0:
             border_rect = pygame.Rect(0, 0, self.rect.w, self.rect.h)
             pygame.draw.rect(btn, GUI_BDR_CLR, border_rect, GUI_BDR_WIDTH)
-        text = FONT_16.render(label, True, GUI_FONT_CLR)
+        if big:
+            text = FONT_24.render(label, True, GUI_FONT_CLR)
+        else:
+            text = FONT_16.render(label, True, GUI_FONT_CLR)
         text_rect = text.get_rect()
         text_align_rect = pygame.Rect(0, 0, self.rect.w, self.rect.h)
         text_align_rect.x = self.rect.w // 2 - text_rect.w // 2
@@ -101,7 +111,10 @@ class GuiButton(GuiElement):
         if GUI_BDR_WIDTH > 0:
             border_rect = pygame.Rect(0, 0, self.rect.w, self.rect.h)
             pygame.draw.rect(btn, GUI_BDR_CLR_HVR, border_rect, GUI_BDR_WIDTH)
-        text = FONT_16.render(label, True, GUI_FONT_CLR_HVR)
+        if big:
+            text = FONT_24.render(label, True, GUI_FONT_CLR_HVR)
+        else:
+            text = FONT_16.render(label, True, GUI_FONT_CLR_HVR)
         text_rect = text.get_rect()
         text_align_rect = pygame.Rect(0, 0, self.rect.w, self.rect.h)
         text_align_rect.x = self.rect.w // 2 - text_rect.w // 2
@@ -115,15 +128,8 @@ class GuiButton(GuiElement):
     def state_hover(self):
         self.image = self._images[1]
 
-    def update(self, mouse_rect, btn_state, dt):
-        # check for button state changes
-        if mouse_rect.colliderect(self.rect):
-            self.state_hover()
-            if btn_state[0]:
-                return self.action
-        else:
-            self.state_none()
-        return None
+    def tool_tip(self):
+        return self.label
 
 
 class GuiTextInput(GuiElement):
@@ -142,35 +148,32 @@ class GuiTextInput(GuiElement):
         self._cursor_pos = 0
         self._cursor_state = False
         self._blink_timer = 0.0
-        self._type_timer = 0.0
         self._cursor_blink = 0.5
-        self._type_delay = 0.15
+        self._del_timer = 0.0  # prevent delete from going nuts
+        self._del_limit = 0.1
         self._content_box = GuiContentBox(self.parent, rect)
         self.cursor_to_end()  # This calls render
 
-    def update(self, mouse_rect, btn_state, dt):
+    def neglect(self):
+        self.focused = False
+        self.image = self._images['no_cursor']
+        self._del_timer = 0.0
+
+    def focus(self):
+        self.focused = True
+        self.image = self._images['cursor']
+
+    def cursor_blink(self, dt):
         if self.focused:
-            # TODO if we're focused, we'll need input capture
             self._blink_timer += dt
-            self._type_timer += dt
+            self._del_timer += dt
             if self._blink_timer > self._cursor_blink:
                 self._cursor_state = not self._cursor_state
                 self._blink_timer = 0.0
-            if self._cursor_state:
-                self.image = self._images['cursor']
-            else:
-                self.image = self._images['no_cursor']
-            if self._type_timer > self._type_delay:
-                self.handle_text_input()
-        # check for mouse clicked on us
-        if btn_state[0]:
-            if mouse_rect.colliderect(self.rect):
-                self.focused = True
-            else:
-                self.focused = False
-                # ensure we're not stuck with cursor shown
-                self.image = self._images['no_cursor']
-        return None
+                if self._cursor_state:
+                    self.image = self._images['cursor']
+                else:
+                    self.image = self._images['no_cursor']
 
     def render_text(self):
         # TODO bug fix: need to calculate position of cursor as it's not working too well
@@ -205,39 +208,6 @@ class GuiTextInput(GuiElement):
         # set initial image state to no_cursor
         self.image = self._images['no_cursor']
 
-    def handle_text_input(self):
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_BACKSPACE]:
-            self.backspace()
-        if keys[pygame.K_DELETE]:
-            self.delete()
-        if keys[pygame.K_LEFT]:
-            self.cursor_backwards()
-        if keys[pygame.K_RIGHT]:
-            self.cursor_forward()
-        # check alpha keys
-        mods = pygame.key.get_mods()
-        # handle 0-9
-        for k in range(48, 58):
-            if keys[k]:
-                self.type(pygame.key.name(k))
-        # handle a-z + shift/caps
-        for k in range(97, 123):
-            if keys[k]:
-                k_letter = pygame.key.name(k)
-                if mods & CAPS_ON:
-                    if not mods & SHIFT_DOWN:
-                        k_letter = str.capitalize(k_letter)
-                else:
-                    if mods & SHIFT_DOWN:
-                        k_letter = str.capitalize(k_letter)
-                self.type(k_letter)
-        # check specific characters
-        if keys[pygame.K_MINUS] and mods & SHIFT_DOWN:
-            self.type("_")
-        if keys[pygame.K_SPACE]:
-            self.type("_")
-
     def get_text(self):
         return "".join(self._text)
 
@@ -248,15 +218,19 @@ class GuiTextInput(GuiElement):
             self.cursor_forward()
 
     def backspace(self):
-        if self._cursor_pos > 0:
-            self._cursor_pos -= 1
-            self._text.pop(self._cursor_pos)
-            self.render_text()
+        if self._del_timer >= self._del_limit:
+            self._del_timer = 0.0
+            if self._cursor_pos > 0:
+                self._cursor_pos -= 1
+                self._text.pop(self._cursor_pos)
+                self.render_text()
 
     def delete(self):
-        if 0 < self._cursor_pos < len(self._text):
-            self._text.pop(self._cursor_pos + 1)
-            self.render_text()
+        if self._del_timer >= self._del_limit:
+            self._del_timer = 0.0
+            if 0 < self._cursor_pos < len(self._text):
+                self._text.pop(self._cursor_pos + 1)
+                self.render_text()
 
     def cursor_to_end(self):
         self._cursor_pos = len(self._text)
@@ -314,7 +288,8 @@ class GuiImageButton(GuiElement):
 
 class GuiImageButtonGroup(object):
 
-    def __init__(self, display_rect):
+    def __init__(self, gui, display_rect):
+        self._gui_ref = gui
         self._image_button_rows = {}
         self.rect = display_rect
         self._rows_shown = 0
@@ -399,27 +374,169 @@ class GuiTextLabel(GuiElement):
         self.rect = self.image.get_rect()
         self.rect.topleft = x, y
 
-"""
-This is going to be somewhat of a GUI manager, basically I want to just add elements to the GUI then have the GUI watch
-events and do it's thing and check for certain "actions" that can occur with the GUI, I'll need to think this through a bit
-"""
+
+class GuiColorCell(GuiElement):
+
+    def __init__(self, rect, color, grid_color=BLACK):
+        super().__init__(None)  # we hand None to GuiElement as we don't need a parent ref for this class
+        self.rect = rect
+        self._color = color
+        self._grid_color = grid_color
+        self._build_image()
+
+    def _build_image(self):
+        self.image = pygame.Surface([self.rect.w, self.rect.h]).convert()
+        self.image.fill(self._color)
+        dr = pygame.Rect(0, 0, self.rect.w, self.rect.h)
+        pygame.draw.rect(self.image, self._grid_color, dr, 1)
+
+    def set_color(self, color):
+        self._color = color
+        self._build_image()
+
+    def set_grid_color(self, color):
+        self._grid_color = color
+        self._build_image()
+
+    def get_color(self):
+        return self._color
+
+
+class GuiColorCellGrid(object):
+
+    def __init__(self, x, y, image_width=16, image_height=16):
+        self._x = x
+        self._y = y
+        self._w = image_width
+        self._h = image_height
+        self._cells = []
+        for cy in range(0, self._h):
+            for cx in range(0, self._w):
+                cell_x = self._x + (cx * self._w)
+                cell_y = self._y + (cy * self._h)
+                cell_rect = pygame.Rect(cell_x, cell_y, self._w, self._h)
+                self._cells.append(GuiColorCell(cell_rect, TRANSPARENCY_COLOR))
+
+    def draw(self, display):
+        for cell in self._cells:
+            display.blit(cell.image, cell.rect)
+        pygame.draw.rect(display, GUI_BDR_CLR, pygame.Rect(self._x-2, self._y-2, (self._w*16)+4, (self._h*16)+4), 1)
+
+
+class GuiMouseButtonState(object):
+
+    def __init__(self):
+        self.state = False  # True - down, False - Up
+        self.state_time = 0.0
+
+    def update(self, dt):
+        self.state_time += dt
+
+    def change_state(self, state):
+        self.state = state
+        self.state_time = 0.0
+
+
+class GuiKeyboardState(object):
+
+    # Note, for key_down/up, key_event needs to come from pygame.event
+    def __init__(self):
+        self.backspace_down = False
+        self.delete_down = False
+        self.left_down = False
+        self.right_down = False
+        self.up_down = False
+        self.down_down = False  # best naming scheme ever
+        self._typing_queue = []
+        self._allowed = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_- "  # allowed chars
+
+    def key_down(self, key_event):
+        if key_event.key == pygame.K_DELETE:
+            self.delete_down = True
+            return None
+        if key_event.key == pygame.K_BACKSPACE:
+            self.backspace_down = True
+            return None
+        if key_event.key == pygame.K_UP:
+            self.up_down = True
+            return None
+        if key_event.key == pygame.K_DOWN:
+            self.down_down = True
+            return None
+        if key_event.key == pygame.K_LEFT:
+            self.left_down = True
+            return None
+        if key_event.key == pygame.K_RIGHT:
+            self.right_down = True
+            return None
+        if key_event.unicode in self._allowed:
+                self._typing_queue.append(key_event.unicode)
+
+    def key_up(self, key_event):
+        if key_event.key == pygame.K_DELETE:
+            self.delete_down = False
+            return None
+        if key_event.key == pygame.K_BACKSPACE:
+            self.backspace_down = False
+            return None
+        if key_event.key == pygame.K_UP:
+            self.up_down = False
+            return None
+        if key_event.key == pygame.K_DOWN:
+            self.down_down = False
+            return None
+        if key_event.key == pygame.K_LEFT:
+            self.left_down = False
+            return None
+        if key_event.key == pygame.K_RIGHT:
+            self.right_down = False
+            return None
+
+    def has_input(self):
+        return len(self._typing_queue) > 0 or self.delete_down or self.backspace_down
+
+    def has_text(self):
+        return len(self._typing_queue) > 0
+
+    def get(self):
+        s = "".join(self._typing_queue)
+        self._typing_queue.clear()
+        return s
 
 
 class Gui(object):
 
     def __init__(self):
         # TODO, this might need to be specific element types (e.g buttons, text boxes, etc)
-        self._elements = {}
+        self._elements = {
+            "button": {},
+            "content_box": {},
+            "text_input": {},
+            "text_label": {}
+        }
         self._focused_input = None
-        self._action_timer = 0.0
-        self._action_delay = 0.15
+        # click speed control
+        self._mouse_action_timer = 0.0
+        self._mouse_action_delay = 0.15
         self._mouse_helper_text_obj = None
         self._current_mouse_helper_text = None
+        # 0.1.2 elements
+        self._mouse_over_element = None
+        self._click_action = None
+        # mouse controls
+        self.mouse_btn_states = {
+            1: GuiMouseButtonState(), 2: GuiMouseButtonState, 3: GuiMouseButtonState
+        }
+        self.mouse_scroll = 0  # mouse button 4 = up, 5 = down, up +, down -, so -3 means mouse scrolled down 3
+        self.keyboard_state = GuiKeyboardState()
+        self.mouse_rect = pygame.Rect(0, 0, 1, 1)
 
     def mouse_text(self, text):
         if self._current_mouse_helper_text != text:
             self._current_mouse_helper_text = text
-            self._mouse_helper_text_obj = FONT_12.render(text, True, GUI_FONT_CLR, GUI_BG_CLR)
+            txt_obj = FONT_12.render(text, True, GUI_FONT_CLR, GUI_BG_CLR)
+            self._mouse_helper_text_obj = pygame.Surface([txt_obj.get_rect().w + 4, txt_obj.get_rect().h + 4]).convert()
+            self._mouse_helper_text_obj.blit(txt_obj, (2, 2))
             if GUI_BDR_WIDTH > 0:
                 r = self._mouse_helper_text_obj.get_rect()
                 r.topleft = 0, 0
@@ -429,40 +546,99 @@ class Gui(object):
         self._current_mouse_helper_text = None
         self._mouse_helper_text_obj = None
 
-    def find_element(self, key):
-        return self._elements.get(key, None)
+    def add_element(self, category, key, element):
+        self._elements[category][key] = element
+
+    def find_element(self, cat, key):
+        return self._elements.get(cat).get(key, None)
 
     def create_button(self, key, action, label, rect):
-        self._elements[key] = GuiButton(self, rect, label, action)
+        self.add_element("button", key, GuiButton(self, rect, label, action))
+
+    def create_large_button(self, key, action, label, rect):
+        self.add_element("button", key, GuiButton(self, rect, label, action, True))
 
     def create_content_box(self, key, rect):
-        self._elements[key] = GuiContentBox(self, rect)
+        self.add_element("content_box", key, GuiContentBox(self, rect))
 
     def create_text_input(self, key, label, rect, text, max_len=0):
-        self._elements[key] = GuiTextInput(self, rect, label, text, max_len)
+        self.add_element("text_input", key, GuiTextInput(self, rect, label, text, max_len))
 
     def create_text_label(self, key, text, point):
-        self._elements[key] = GuiTextLabel(self, text, point[0], point[1])
+        self.add_element("text_label", key, GuiTextLabel(self, text, point[0], point[1]))
+
+    def input(self, events):  # events should be handed over from pygame.event.get()
+        self.mouse_rect.topleft = pygame.mouse.get_pos()
+        self.mouse_scroll = 0
+        for e in events:
+            # check for mouse 1, 2, 3 (clicks) and 4, 5 scroll (only checking btn down for 4/5)
+            if e.type == pygame.MOUSEBUTTONDOWN:
+                if e.button in self.mouse_btn_states.keys():
+                    self.mouse_btn_states[e.button].change_state(True)
+                if e.button == 4:
+                    self.mouse_scroll = 1
+                if e.button == 5:
+                    self.mouse_scroll = -1
+            if e.type == pygame.MOUSEBUTTONUP:
+                if e.button in self.mouse_btn_states.keys():
+                    self.mouse_btn_states[e.button].change_state(False)
+            # should have mouse state and position done now
+            if e.type == pygame.KEYDOWN:
+                self.keyboard_state.key_down(e)
+            if e.type == pygame.KEYUP:
+                self.keyboard_state.key_up(e)
 
     def update(self, dt):
-        action = None
-        self._action_timer += dt
-        mouse_rect = pygame.Rect(pygame.mouse.get_pos(), (1, 1))
-        button_states = pygame.mouse.get_pressed()
-        for k, e in self._elements.items():
-            a = e.update(mouse_rect, button_states, dt)
-            if a is not None:
-                action = a
-        if action is not None:
-            if self._action_timer < self._action_delay:
-                return None
+        self._mouse_action_timer += dt
+        # first, lets check for mouse-over's on buttons and change their state as needed
+        hover_check = False
+        for k, btn in self._elements['button'].items():
+            if btn.mouse_over(self.mouse_rect):
+                btn.state_hover()
+                self.mouse_text(btn.tool_tip())
+                hover_check = True
+                # check if LMB is down, if it is, return the buttons action
+                if self.mouse_btn_states[1].state:
+                    # ensure we don't send actions too quickly
+                    if self._mouse_action_timer > self._mouse_action_delay:
+                        self._mouse_action_timer = 0.0
+                        return btn.action
             else:
-                self._action_timer = 0.0
-                return action
+                btn.state_none()
+        # just checks if the mouse was over a button, if it wasn't we make sure we don't have tool tip text
+        if not hover_check:
+            self.no_mouse_text()
+        # next, lets to check our text boxes IF we have keyboard input
+        for k, txt in self._elements['text_input'].items():
+            # if focused check if the element is still in focus (clicked off)
+            if txt.focused:
+                if self.mouse_btn_states[1].state:
+                    if not txt.mouse_over(self.mouse_rect):
+                        txt.neglect()
+            else:  # otherwise, check if it's been clicked (focused on)
+                if self.mouse_btn_states[1].state:
+                    if txt.mouse_over(self.mouse_rect):
+                        txt.focus()
+            # now if the object is still in focus, process whatever input we caught
+            if txt.focused:  # TODO need to handle arrow keys moving the cursor
+                if self.keyboard_state.backspace_down:
+                    txt.backspace()
+                if self.keyboard_state.delete_down:
+                    txt.delete()
+                if self.keyboard_state.has_text():
+                    txt.type(self.keyboard_state.get())
+                # lastly, after all text has been updated, we call cursor blink
+                txt.cursor_blink(dt)
         return None
 
     def draw(self, display):
-        for k, e in self._elements.items():
+        for k, e in self._elements['button'].items():
+            display.blit(e.image, e.rect)
+        for k, e in self._elements['content_box'].items():
+            display.blit(e.image, e.rect)
+        for k, e in self._elements['text_input'].items():
+            display.blit(e.image, e.rect)
+        for k, e in self._elements['text_label'].items():
             display.blit(e.image, e.rect)
 
     def draw_tooltip(self, display):

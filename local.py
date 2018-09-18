@@ -7,16 +7,22 @@ from lib.colors import *
 
 VERSION_MAJOR = 0
 VERSION_MINOR = 1
-VERSION_BUILD = 1
+VERSION_BUILD = 2
 
 CAPTION = "SpriteBuilder: {}.{}.{}".format(VERSION_MAJOR, VERSION_MINOR, VERSION_BUILD)
 
 pygame.init()
 pygame.font.init()
+pygame.key.set_repeat(100, 100)  # we need this to handle typing properly
 
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 640
 SCREEN_SIZE = SCREEN_WIDTH, SCREEN_HEIGHT
+
+HORIZONTAL_CENTER = SCREEN_WIDTH // 2
+VERTICAL_CENTER = SCREEN_HEIGHT // 2
+SCREEN_CENTER = HORIZONTAL_CENTER, VERTICAL_CENTER
+
 
 IMAGE_DIR = "images"
 # images create by the user
@@ -63,20 +69,20 @@ SHIFT_DOWN = pygame.KMOD_LSHIFT | pygame.KMOD_RSHIFT
 
 
 # Positioning
-POS_BTN_UNDO = pygame.Rect(464, 40, 96, 32)
-POS_BTN_SAVE = pygame.Rect(240, 40, 96, 32)
-POS_BTN_CLEAR = pygame.Rect(352, 40, 96, 32)
-POS_BTN_QUIT = pygame.Rect(128, 40, 96, 32)
-POS_BTN_S_TOP = pygame.Rect(680, 220, 48, 32)
-POS_BTN_S_UP = pygame.Rect(680, 260, 48, 32)
-POS_BTN_S_DOWN = pygame.Rect(680, 300, 48, 32)
-POS_BTN_S_END = pygame.Rect(680, 340, 48, 32)
-POS_CTB_IMAGES = pygame.Rect(128, 220, 544, 320)
+POS_BTN_UNDO = pygame.Rect(HORIZONTAL_CENTER, 20, 96, 32)
+POS_BTN_SAVE = pygame.Rect(HORIZONTAL_CENTER - 200, 20, 96, 32)
+POS_BTN_CLEAR = pygame.Rect(HORIZONTAL_CENTER - 100, 20, 96, 32)
+POS_BTN_QUIT = pygame.Rect(HORIZONTAL_CENTER - 300, 20, 96, 32)
+POS_BTN_S_TOP = pygame.Rect(HORIZONTAL_CENTER + 304, 220, 48, 32)
+POS_BTN_S_UP = pygame.Rect(HORIZONTAL_CENTER + 304, 260, 48, 32)
+POS_BTN_S_DOWN = pygame.Rect(HORIZONTAL_CENTER + 304, 300, 48, 32)
+POS_BTN_S_END = pygame.Rect(HORIZONTAL_CENTER + 304, 340, 48, 32)
+POS_CTB_IMAGES = pygame.Rect(HORIZONTAL_CENTER - 272, 220, 544, SCREEN_HEIGHT - 256)
 POS_CTB_MO_PV = pygame.Rect(592, 130, 80, 80)
 POS_CTB_PV_16 = pygame.Rect(128, 130, 80, 80)
 POS_CTB_PV_32 = pygame.Rect(228, 130, 80, 80)
 POS_CTB_PV_64 = pygame.Rect(328, 130, 80, 80)
-POS_TXT_IN_IMG_LABEL = pygame.Rect(200, 86, 200, 30)
+POS_TXT_IN_IMG_LABEL = pygame.Rect(220, 86, 200, 30)
 POS_LABEL_FILENAME = 130, 92
 
 

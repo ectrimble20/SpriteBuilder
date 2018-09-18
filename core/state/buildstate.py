@@ -11,7 +11,7 @@ class BuildState(RunState):
         super().__init__(parent)
         self._loaded = False
         self._gui = Gui()
-        self._gui_images = GuiImageButtonGroup(pygame.Rect(128, 220, 544, 320))
+        self._gui_images = GuiImageButtonGroup(self._gui, POS_CTB_IMAGES)
         self._images = Manager()
         self._current_image = CompoundImage()
         self._image_count = 0
@@ -22,12 +22,13 @@ class BuildState(RunState):
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1 and self._preview_image is not None:
                     self._current_image.add(self._preview_image.get_raw())
+        self._gui.input(events)
 
     def update(self, dt):
         action = self._gui.update(dt)
         if action is not None:
-            if action == 'quit':
-                self.parent.trigger_quit()
+            if action == 'back':
+                self.parent.trigger_state_change('menu')
             if action == 'save':
                 self._save_image()
             if action == 'clear':
@@ -47,13 +48,19 @@ class BuildState(RunState):
             if action == 'scroll_end':
                 self._gui_images.row_last()
         self._preview_image = self._gui_images.mouse_over()
+        # check for mouse scroll
+        if self._gui.mouse_scroll != 0:
+            if self._gui.mouse_scroll > 0:
+                    self._gui_images.row_up()
+            else:
+                    self._gui_images.row_down()
 
     def draw(self, display):
         self._gui.draw(display)
         self._gui_images.draw(display)  # draw this after the other gui elements
         if self._preview_image is not None:
             # get the center of the preview box
-            cp = self._gui.find_element("content_mouse_over").rect.center
+            cp = self._gui.find_element("content_box", "content_mouse_over").rect.center
             pv_img = self._preview_image.get_raw()
             pr = pv_img.get_rect()
             # we need to adjust the preview to 64x64
@@ -67,17 +74,17 @@ class BuildState(RunState):
             pr.center = cp
             display.blit(pv_img, pr)
         if self._current_image.has_content():
-            cp = self._gui.find_element("content_preview_16").rect.center
+            cp = self._gui.find_element("content_box", "content_preview_16").rect.center
             pi = self._current_image.get_image(1)
             pr = pi.get_rect()
             pr.center = cp
             display.blit(pi, pr)
-            cp = self._gui.find_element("content_preview_32").rect.center
+            cp = self._gui.find_element("content_box", "content_preview_32").rect.center
             pi = self._current_image.get_image(2)
             pr = pi.get_rect()
             pr.center = cp
             display.blit(pi, pr)
-            cp = self._gui.find_element("content_preview_64").rect.center
+            cp = self._gui.find_element("content_box", "content_preview_64").rect.center
             pi = self._current_image.get_image(4)
             pr = pi.get_rect()
             pr.center = cp
@@ -89,7 +96,7 @@ class BuildState(RunState):
             self._gui.create_button("btn_undo", "undo", "Undo Last", POS_BTN_UNDO)
             self._gui.create_button("btn_save", "save", "Save", POS_BTN_SAVE)
             self._gui.create_button("btn_clear", "clear", "Clear", POS_BTN_CLEAR)
-            self._gui.create_button("btn_quit", "quit", "Quit", POS_BTN_QUIT)
+            self._gui.create_button("btn_back", "back", "Back", POS_BTN_QUIT)
             self._gui.create_button("btn_scroll_top", "scroll_top", "First", POS_BTN_S_TOP)
             self._gui.create_button("btn_scroll_up", "scroll_up", "Up", POS_BTN_S_UP)
             self._gui.create_button("btn_scroll_down", "scroll_down", "Down", POS_BTN_S_DOWN)
@@ -100,7 +107,7 @@ class BuildState(RunState):
             self._gui.create_content_box("content_preview_32", POS_CTB_PV_32)
             self._gui.create_content_box("content_preview_64", POS_CTB_PV_64)
             self._gui.create_text_input("input_image_label", "Text", POS_TXT_IN_IMG_LABEL, "")
-            self._gui.create_text_label("filename_label", "Filename", POS_LABEL_FILENAME)
+            self._gui.create_text_label("filename_label", "Image Name", POS_LABEL_FILENAME)
             self._load_images()
             # self._gui.mouse_text("TEST MOUSE TEXT")
             # add image btn group here
@@ -125,7 +132,7 @@ class BuildState(RunState):
 
     def _save_image(self):
         if self._current_image.has_content():
-            file_name = self._gui.find_element('input_image_label').get_text()
+            file_name = self._gui.find_element("text_input", 'input_image_label').get_text()
             if len(file_name) == 0:
                 file_name = get_save_image_path()
             else:
@@ -134,4 +141,4 @@ class BuildState(RunState):
             pygame.image.save(self._current_image.get_image(1), file_name)
             if path.isfile(file_name):
                 self._current_image.reset()
-                self._gui.find_element('input_image_label').clear()
+                self._gui.find_element("text_input", 'input_image_label').clear()

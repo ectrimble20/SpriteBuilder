@@ -31,10 +31,19 @@ Add images by clicking on them, hovering over an image gives you a larger previe
 - [ ] Improved layout
 - [ ] Image/color editor
 - [ ] Figure out the rest of the To-Do's
-- [ ] Menu implementation
-- [x] GUI (WIP)
+- [x] Menu implementation
+- [ ] Menu polish
+- [ ] Splash-screen or logo?
+- [x] GUI (still WIP)
+- [ ] Setup script
 
 #### Change Log
+
+##### 0.1.2
+
+This build focuses on fixing issues with the Gui controls, while there are still some issues, most of the problems
+from 0.1.0 and 0.1.1 have been addressed, though some fixes are a bit hackish and will need some more reworking 
+before I'll consider them finished.
 
 ##### 0.1.1
 

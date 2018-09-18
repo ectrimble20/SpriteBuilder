@@ -1,3 +1,36 @@
+0.1.2 - Commit notes
+
+I made good progress on making the GUI more functional, switching to a centralized system is going to work out nicely
+and allowed me to fairly easily fix the typing issue with the input boxes.  We're going to have to do some changes to
+other elements to fully integrate all the UI stuff into the Gui object, but for now they can remain separate.
+
+The current build isn't polished at all, but is functional and has minimal bugs for it's current state.
+
+0.1.2 - Changes
+
+- Added set_repeat for key input into local.py
+- Gui Changes
+    - New GuiMouseButtonState and GuiKeyboardState classes for handling input
+    - Gui now captures and logs mouse input to the Gui object
+    - Gui now captures and logs keyboard input
+    - elements reorganized into categories for better control of event/draw order
+- Text processing behavior greatly improved with new Gui system.  Delete/Backspace is still a little off but isn't
+really a noticeable problem and will probably work for what it is.
+- Tool-tip text tweaked, added a padding routine to clean up the look.  Buttons now have a callback build into the
+gui object
+- Menu state implemented, need some button features since the buttons to not scale up well.
+    - probably just a Large button class of some sort.
+- GuiButton modified to accept "big" modifier to use 24px font
+- Started dynamic positioning implementation in local.py
+- Added CreatorState, the beginnings of the pixel art creator
+- Added GuiColorCell and GuiColorCellGrid, these will be used with the Creator to make and edit images
+
+
+0.1.2 - Bugs
+
+- Mouse clicking is causing erratic button behavior, clicks registering too many times.
+
+
 0.1.1 - Changes
 
 - Added colors.py, common use colors, changed local colors, eventually want to be able to customize this within
