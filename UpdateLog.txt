@@ -1,3 +1,16 @@
+0.1.3 - Commit notes
+
+Just removing unused code.  Preping for 0.1.4 changes which will include building out new GUI classes to handle the
+creator state and potentially working towards an options state for more dynamic behavior (though this might come later
+than 0.1.4 and be more realistic for 0.1.5+)
+
+0.1.3 - Changes
+
+- Cleaning up unused and old code.
+- Cleaned up main.py file, removed old references
+- Cleaned up images.py, removed old unused classes.
+
+
 0.1.2 - Commit notes
 
 I made good progress on making the GUI more functional, switching to a centralized system is going to work out nicely

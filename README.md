@@ -39,6 +39,10 @@ Add images by clicking on them, hovering over an image gives you a larger previe
 
 #### Change Log
 
+##### 0.1.3
+
+Removed old code from 0.1.0
+
 ##### 0.1.2
 
 This build focuses on fixing issues with the Gui controls, while there are still some issues, most of the problems
