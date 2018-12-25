@@ -1,3 +1,10 @@
+0.1.4 - Changes
+
+- Creating new Gui classes to handle interaction with the Creator state
+- Major Gui redesign, since this project is very Gui heavy, we'll need some new elements to help speed up building
+the interface which needs to be dynamic, but also reliable under many conditions.
+
+
 0.1.3 - Commit notes
 
 Just removing unused code.  Preping for 0.1.4 changes which will include building out new GUI classes to handle the

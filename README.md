@@ -39,6 +39,14 @@ Add images by clicking on them, hovering over an image gives you a larger previe
 
 #### Change Log
 
+
+##### 0.1.4
+
+GUI fixes and tweaks.  Working towards dynamic sized interface
+This is going to be the last 0.1 update.  0.2.0 will rebuild the GUI to be a bit easier for me to work with.
+I'm also planning on including a number of new features in the 0.2.x builds.  0.2.0 itself will more than likely just be
+0.1.x with some code fixes and clean ups.
+
 ##### 0.1.3
 
 Removed old code from 0.1.0

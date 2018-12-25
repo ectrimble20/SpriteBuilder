@@ -1,6 +1,6 @@
 from core.state import RunState
 from local import *
-from lib.gui import GuiColorCellGrid, Gui
+from lib.gui import Gui
 
 
 class CreatorState(RunState):
@@ -8,7 +8,6 @@ class CreatorState(RunState):
     def __init__(self, parent):
         super().__init__(parent)
         self._loaded = False
-        self._grid = GuiColorCellGrid(100, 100)
         self._gui = Gui()
 
     def input(self, events):
@@ -21,7 +20,6 @@ class CreatorState(RunState):
                 self.parent.trigger_state_change('menu')
 
     def draw(self, display):
-        self._grid.draw(display)
         self._gui.draw(display)
 
     def on_enter(self):

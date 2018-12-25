@@ -7,7 +7,7 @@ from lib.colors import *
 
 VERSION_MAJOR = 0
 VERSION_MINOR = 1
-VERSION_BUILD = 2
+VERSION_BUILD = 4
 
 CAPTION = "SpriteBuilder: {}.{}.{}".format(VERSION_MAJOR, VERSION_MINOR, VERSION_BUILD)
 
@@ -48,6 +48,10 @@ FONT_FILE = "trebuc.ttf"
 FONT_24 = pygame.font.Font(FONT_FILE, 24)
 FONT_16 = pygame.font.Font(FONT_FILE, 16)
 FONT_12 = pygame.font.Font(FONT_FILE, 12)
+
+# 1.0.4 new font objects are dynamically generated and cached
+# the old objects are still there for backwards compatibility
+FONT = {}
 
 # GUI Colors
 # BDR - border
@@ -109,3 +113,9 @@ def load_sys_images():
         full_path = path.join(SYS_IMAGE_DIR, "{}.png".format(f_name))
         i = pygame.image.load(full_path).convert_alpha()
         SYS_IMAGES[f_name] = i
+
+
+def get_font(size=16):
+    if size not in FONT.keys():
+        FONT[size] = pygame.font.Font(FONT_FILE, size)
+    return FONT[size]

@@ -375,52 +375,54 @@ class GuiTextLabel(GuiElement):
         self.rect.topleft = x, y
 
 
-class GuiColorCell(GuiElement):
+class GuiCreatorImagePixel(object):
 
-    def __init__(self, rect, color, grid_color=BLACK):
-        super().__init__(None)  # we hand None to GuiElement as we don't need a parent ref for this class
+    STATE_INACTIVE = 0
+    STATE_ACTIVE = 1
+
+    def __init__(self, rect, init_color=MAGENTA):
+        self.color = init_color
+        self.state = GuiCreatorImagePixel.STATE_INACTIVE
+        self._images = {}
         self.rect = rect
-        self._color = color
-        self._grid_color = grid_color
-        self._build_image()
+        self._build()
 
-    def _build_image(self):
-        self.image = pygame.Surface([self.rect.w, self.rect.h]).convert()
-        self.image.fill(self._color)
-        dr = pygame.Rect(0, 0, self.rect.w, self.rect.h)
-        pygame.draw.rect(self.image, self._grid_color, dr, 1)
+    @property
+    def image(self):
+        return self._images[self.state]
 
-    def set_color(self, color):
-        self._color = color
-        self._build_image()
+    def set_state_active(self):
+        self.state = GuiCreatorImagePixel.STATE_ACTIVE
 
-    def set_grid_color(self, color):
-        self._grid_color = color
-        self._build_image()
+    def set_state_inactive(self):
+        self.state = GuiCreatorImagePixel.STATE_INACTIVE
 
-    def get_color(self):
-        return self._color
+    def _build(self):
+        self._images.clear()
+        self._images[GuiCreatorImagePixel.STATE_ACTIVE] = pygame.Surface([self.rect.w, self.rect.h])
+        self._images[GuiCreatorImagePixel.STATE_ACTIVE].fill(self.color)
+        pygame.draw.rect(self._images[GuiCreatorImagePixel.STATE_ACTIVE], WHITE, self.rect, 1)
+        self._images[GuiCreatorImagePixel.STATE_INACTIVE] = pygame.Surface([self.rect.w, self.rect.h])
+        self._images[GuiCreatorImagePixel.STATE_INACTIVE].fill(self.color)
+
+    def change_color(self, color):
+        self.color = color
+        self._build()
 
 
-class GuiColorCellGrid(object):
+class GuiCreatorImage(object):
 
-    def __init__(self, x, y, image_width=16, image_height=16):
-        self._x = x
-        self._y = y
-        self._w = image_width
-        self._h = image_height
-        self._cells = []
-        for cy in range(0, self._h):
-            for cx in range(0, self._w):
-                cell_x = self._x + (cx * self._w)
-                cell_y = self._y + (cy * self._h)
-                cell_rect = pygame.Rect(cell_x, cell_y, self._w, self._h)
-                self._cells.append(GuiColorCell(cell_rect, TRANSPARENCY_COLOR))
+    def __init__(self, x, y, img_w, img_h, scale=256):
+        pass
+
+    def input(self):
+        pass
+
+    def update(self):
+        pass
 
     def draw(self, display):
-        for cell in self._cells:
-            display.blit(cell.image, cell.rect)
-        pygame.draw.rect(display, GUI_BDR_CLR, pygame.Rect(self._x-2, self._y-2, (self._w*16)+4, (self._h*16)+4), 1)
+        pass
 
 
 class GuiMouseButtonState(object):
